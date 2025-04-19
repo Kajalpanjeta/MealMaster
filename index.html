@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MealMaster - Your Personal Meal Planning Assistant</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Authentication Section -->
+        <div class="auth-container" id="authContainer">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Food Image" class="auth-image">
+                    <h1>MealMaster</h1>
+                    <p>Your personal meal planning assistant</p>
+                </div>
+                
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">Login</button>
+                    <button class="auth-tab" data-tab="signup">Sign Up</button>
+                </div>
+                
+                <div class="auth-form-container">
+                    <!-- Login Form -->
+                    <form id="loginForm" class="auth-form active">
+                        <div class="form-group">
+                            <label for="loginEmail"><i class="fas fa-envelope"></i> Email</label>
+                            <input type="email" id="loginEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword"><i class="fas fa-lock"></i> Password</label>
+                            <input type="password" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                        <div class="form-error" id="loginError"></div>
+                    </form>
+                    
+                    <!-- Signup Form -->
+                    <form id="signupForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="signupName"><i class="fas fa-user"></i> Full Name</label>
+                            <input type="text" id="signupName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupEmail"><i class="fas fa-envelope"></i> Email</label>
+                            <input type="email" id="signupEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupPassword"><i class="fas fa-lock"></i> Password</label>
+                            <input type="password" id="signupPassword" required minlength="6">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Sign Up</button>
+                        <div class="form-error" id="signupError"></div>
+                    </form>
+                </div>
+                
+                <div class="auth-separator">
+                    <span>or</span>
+                </div>
+                
+                <button id="googleSignIn" class="btn btn-google">
+                    <i class="fab fa-google"></i> Continue with Google
+                </button>
+            </div>
+        </div>
+
+        <!-- User Onboarding Section -->
+        <div class="onboarding-container hidden" id="onboardingContainer">
+            <div class="onboarding-card">
+                <h2>Tell us about your preferences</h2>
+                <p>This helps us personalize your meal plans</p>
+                
+                <form id="onboardingForm" class="onboarding-form">
+                    <div class="form-progress">
+                        <div class="progress-step active" data-step="1">1</div>
+                        <div class="progress-line"></div>
+                        <div class="progress-step" data-step="2">2</div>
+                        <div class="progress-line"></div>
+                        <div class="progress-step" data-step="3">3</div>
+                    </div>
+                    
+                    <!-- Step 1: Basic Info -->
+                    <div class="onboarding-step active" data-step="1">
+                        <h3>Basic Information</h3>
+                        
+                        <div class="form-group">
+                            <label for="userAge">Age</label>
+                            <input type="number" id="userAge" min="13" max="100">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="gender" value="male"> Male
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="gender" value="female"> Female
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="gender" value="other"> Other
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="activityLevel">Activity Level</label>
+                            <select id="activityLevel">
+                                <option value="sedentary">Sedentary (office job, little exercise)</option>
+                                <option value="light">Lightly Active (light exercise 1-3 days/week)</option>
+                                <option value="moderate">Moderately Active (moderate exercise 3-5 days/week)</option>
+                                <option value="active">Very Active (hard exercise 6-7 days/week)</option>
+                                <option value="extra_active">Extra Active (physical job & hard exercise)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="btn btn-next" data-next="2">Next</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Dietary Preferences -->
+                    <div class="onboarding-step" data-step="2">
+                        <h3>Dietary Preferences</h3>
+                        
+                        <div class="form-group">
+                            <label for="dietType">Diet Type</label>
+                            <select id="dietType">
+                                <option value="no_restrictions">No Restrictions</option>
+                                <option value="vegetarian">Vegetarian</option>
+                                <option value="vegan">Vegan</option>
+                                <option value="pescatarian">Pescatarian</option>
+                                <option value="keto">Keto</option>
+                                <option value="paleo">Paleo</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Allergies & Restrictions</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="allergies" value="dairy"> Dairy
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="allergies" value="gluten"> Gluten
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="allergies" value="nuts"> Nuts
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="allergies" value="eggs"> Eggs
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="allergies" value="soy"> Soy
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="allergies" value="seafood"> Seafood
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="btn btn-back" data-back="1">Back</button>
+                            <button type="button" class="btn btn-next" data-next="3">Next</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Goals -->
+                    <div class="onboarding-step" data-step="3">
+                        <h3>Your Goals</h3>
+                        
+                        <div class="form-group">
+                            <label for="fitnessGoal">Primary Goal</label>
+                            <select id="fitnessGoal">
+                                <option value="maintain">Maintain Weight</option>
+                                <option value="lose">Lose Weight</option>
+                                <option value="gain">Gain Weight/Muscle</option>
+                                <option value="health">Improve Overall Health</option>
+                                <option value="energy">Increase Energy</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="calorieGoal">Daily Calorie Target (optional)</label>
+                            <input type="number" id="calorieGoal" min="1200" max="5000">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Focus Areas</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="focus" value="protein"> High Protein
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="focus" value="low_carb"> Low Carb
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="focus" value="low_fat"> Low Fat
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="focus" value="high_fiber"> High Fiber
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="focus" value="balanced"> Balanced Nutrition
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="btn btn-back" data-back="2">Back</button>
+                            <button type="submit" class="btn btn-primary">Save Preferences</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main App Section -->
+        <div class="main-container hidden" id="mainContainer">
+            <!-- App Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <button id="sidebarToggle" class="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="app-title">MealMaster</h1>
+                </div>
+                <div class="header-right">
+                    <button id="themeToggle" class="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="user-menu">
+                        <button id="userMenuButton" class="user-menu-button">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </button>
+                        <div class="user-dropdown hidden" id="userDropdown">
+                            <div class="user-info">
+                                <div class="user-name" id="userDisplayName">User Name</div>
+                                <div class="user-email" id="userEmail">user@example.com</div>
+                            </div>
+                            <ul class="dropdown-menu">
+                                <li><a href="#profile"><i class="fas fa-user-circle"></i> Profile</a></li>
+                                <li><a href="#settings"><i class="fas fa-cog"></i> Settings</a></li>
+                                <li><button id="logoutButton"><i class="fas fa-sign-out-alt"></i> Logout</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- App Sidebar -->
+            <aside class="app-sidebar" id="appSidebar">
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li class="active" data-page="dashboard">
+                            <a href="#dashboard"><i class="fas fa-home"></i> Dashboard</a>
+                        </li>
+                        <li data-page="meal-plan">
+                            <a href="#meal-plan"><i class="fas fa-calendar-alt"></i> Meal Plan</a>
+                        </li>
+                        <li data-page="recipes">
+                            <a href="#recipes"><i class="fas fa-utensils"></i> Recipes</a>
+                        </li>
+                        <li data-page="nutrition">
+                            <a href="#nutrition"><i class="fas fa-chart-pie"></i> Nutrition</a>
+                        </li>
+                        <li data-page="grocery">
+                            <a href="#grocery"><i class="fas fa-shopping-basket"></i> Grocery List</a>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- App Content Container -->
+            <main class="app-content">
+                <!-- Dashboard Page -->
+                <section class="page active" id="dashboard-page">
+                    <div class="page-header">
+                        <h2>Dashboard</h2>
+                    </div>
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-fire"></i> Daily Nutrition</h3>
+                            </div>
+                            <div class="nutrition-summary">
+                                <div class="nutrition-progress">
+                                    <div class="progress-circle" data-percentage="65">
+                                        <div class="progress-inner">
+                                            <div class="progress-value">1450</div>
+                                            <div class="progress-label">calories</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="nutrition-details">
+                                    <div class="macro-item">
+                                        <div class="macro-label">Protein</div>
+                                        <div class="macro-bar">
+                                            <div class="macro-progress protein" style="width: 70%"></div>
+                                        </div>
+                                        <div class="macro-value">85g</div>
+                                    </div>
+                                    <div class="macro-item">
+                                        <div class="macro-label">Carbs</div>
+                                        <div class="macro-bar">
+                                            <div class="macro-progress carbs" style="width: 60%"></div>
+                                        </div>
+                                        <div class="macro-value">120g</div>
+                                    </div>
+                                    <div class="macro-item">
+                                        <div class="macro-label">Fat</div>
+                                        <div class="macro-bar">
+                                            <div class="macro-progress fat" style="width: 45%"></div>
+                                        </div>
+                                        <div class="macro-value">45g</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card today-meals">
+                            <div class="card-header">
+                                <h3><i class="fas fa-clipboard-list"></i> Today's Meals</h3>
+                            </div>
+                            <div class="meal-list">
+                                <div class="meal-item">
+                                    <div class="meal-time">Breakfast</div>
+                                    <div class="meal-content">
+                                        <div class="meal-name">Greek Yogurt Parfait</div>
+                                        <div class="meal-macros">350 cal • 15g protein • 45g carbs • 12g fat</div>
+                                    </div>
+                                    <button class="meal-action"><i class="fas fa-check"></i></button>
+                                </div>
+                                <div class="meal-item completed">
+                                    <div class="meal-time">Lunch</div>
+                                    <div class="meal-content">
+                                        <div class="meal-name">Quinoa Salad Bowl</div>
+                                        <div class="meal-macros">420 cal • 18g protein • 65g carbs • 14g fat</div>
+                                    </div>
+                                    <button class="meal-action"><i class="fas fa-check"></i></button>
+                                </div>
+                                <div class="meal-item">
+                                    <div class="meal-time">Dinner</div>
+                                    <div class="meal-content">
+                                        <div class="meal-name">Baked Salmon with Roasted Vegetables</div>
+                                        <div class="meal-macros">480 cal • 32g protein • 35g carbs • 22g fat</div>
+                                    </div>
+                                    <button class="meal-action"><i class="fas fa-check"></i></button>
+                                </div>
+                                <div class="meal-item">
+                                    <div class="meal-time">Snack</div>
+                                    <div class="meal-content">
+                                        <div class="meal-name">Apple with Almond Butter</div>
+                                        <div class="meal-macros">200 cal • 5g protein • 25g carbs • 10g fat</div>
+                                    </div>
+                                    <button class="meal-action"><i class="fas fa-check"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-star"></i> Recommended Recipes</h3>
+                            </div>
+                            <div class="recipe-suggestions">
+                                <div class="recipe-card">
+                                    <img src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=735&q=80" alt="Meal">
+                                    <div class="recipe-details">
+                                        <h4>Mediterranean Bowl</h4>
+                                        <p>Balanced • High Protein • 30 min</p>
+                                    </div>
+                                </div>
+                                <div class="recipe-card">
+                                    <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1760&q=80" alt="Meal">
+                                    <div class="recipe-details">
+                                        <h4>Colorful Salad</h4>
+                                        <p>Low Carb • Vegan • 15 min</p>
+                                    </div>
+                                </div>
+                                <div class="recipe-card">
+                                    <img src="https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=765&q=80" alt="Meal">
+                                    <div class="recipe-details">
+                                        <h4>Salmon Dinner</h4>
+                                        <p>High Protein • Keto • 25 min</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Meal Plan Page -->
+                <section class="page" id="meal-plan-page">
+                    <div class="page-header">
+                        <h2>Meal Plan</h2>
+                        <div class="page-actions">
+                            <button class="btn btn-outline"><i class="fas fa-file-export"></i> Export</button>
+                            <button class="btn btn-primary"><i class="fas fa-save"></i> Save Plan</button>
+                        </div>
+                    </div>
+                    <div class="week-navigation">
+                        <button class="btn btn-icon week-nav-btn prev"><i class="fas fa-chevron-left"></i></button>
+                        <h3 id="currentWeek">April 15 - April 21, 2023</h3>
+                        <button class="btn btn-icon week-nav-btn next"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="meal-planner-grid">
+                        <div class="time-labels">
+                            <div class="time-label">Breakfast</div>
+                            <div class="time-label">Lunch</div>
+                            <div class="time-label">Dinner</div>
+                            <div class="time-label">Snacks</div>
+                        </div>
+                        <div class="weekday-grid">
+                            <!-- Day columns will be generated dynamically -->
+                            <div class="day-column" data-day="0">
+                                <div class="day-header">Monday</div>
+                                <div class="meal-slot" data-meal="breakfast" data-day="0">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="lunch" data-day="0">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="dinner" data-day="0">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="snacks" data-day="0">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                            </div>
+                            <div class="day-column" data-day="1">
+                                <div class="day-header">Tuesday</div>
+                                <div class="meal-slot" data-meal="breakfast" data-day="1">
+                                    <div class="meal-card" draggable="true">
+                                        <div class="meal-info">
+                                            <h4>Avocado Toast</h4>
+                                            <p>380 cal • 12g protein</p>
+                                        </div>
+                                        <div class="meal-actions">
+                                            <button class="meal-btn edit"><i class="fas fa-edit"></i></button>
+                                            <button class="meal-btn delete"><i class="fas fa-trash"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="meal-slot" data-meal="lunch" data-day="1">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="dinner" data-day="1">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="snacks" data-day="1">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                            </div>
+                            <div class="day-column" data-day="2">
+                                <div class="day-header">Wednesday</div>
+                                <div class="meal-slot" data-meal="breakfast" data-day="2">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="lunch" data-day="2">
+                                    <div class="meal-card" draggable="true">
+                                        <div class="meal-info">
+                                            <h4>Chicken Salad</h4>
+                                            <p>420 cal • 35g protein</p>
+                                        </div>
+                                        <div class="meal-actions">
+                                            <button class="meal-btn edit"><i class="fas fa-edit"></i></button>
+                                            <button class="meal-btn delete"><i class="fas fa-trash"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="meal-slot" data-meal="dinner" data-day="2">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="snacks" data-day="2">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                            </div>
+                            <div class="day-column" data-day="3">
+                                <div class="day-header">Thursday</div>
+                                <div class="meal-slot" data-meal="breakfast" data-day="3">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="lunch" data-day="3">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="dinner" data-day="3">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="snacks" data-day="3">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                            </div>
+                            <div class="day-column" data-day="4">
+                                <div class="day-header">Friday</div>
+                                <div class="meal-slot" data-meal="breakfast" data-day="4">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="lunch" data-day="4">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="dinner" data-day="4">
+                                    <div class="meal-card" draggable="true">
+                                        <div class="meal-info">
+                                            <h4>Salmon & Vegetables</h4>
+                                            <p>520 cal • 40g protein</p>
+                                        </div>
+                                        <div class="meal-actions">
+                                            <button class="meal-btn edit"><i class="fas fa-edit"></i></button>
+                                            <button class="meal-btn delete"><i class="fas fa-trash"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="meal-slot" data-meal="snacks" data-day="4">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                            </div>
+                            <div class="day-column" data-day="5">
+                                <div class="day-header">Saturday</div>
+                                <div class="meal-slot" data-meal="breakfast" data-day="5">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="lunch" data-day="5">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="dinner" data-day="5">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="snacks" data-day="5">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                            </div>
+                            <div class="day-column" data-day="6">
+                                <div class="day-header">Sunday</div>
+                                <div class="meal-slot" data-meal="breakfast" data-day="6">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="lunch" data-day="6">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="dinner" data-day="6">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                                <div class="meal-slot" data-meal="snacks" data-day="6">
+                                    <div class="placeholder-slot">Add meal</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recipe Selection Modal -->
+                    <div class="modal" id="addMealModal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Add to Meal Plan</h3>
+                                <button class="modal-close">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="search-container">
+                                    <input type="text" placeholder="Search recipes..." class="search-input">
+                                </div>
+                                <div class="filter-container">
+                                    <button class="filter-btn active">All</button>
+                                    <button class="filter-btn">Favorites</button>
+                                    <button class="filter-btn">Recent</button>
+                                    <button class="filter-btn">Breakfast</button>
+                                    <button class="filter-btn">Lunch</button>
+                                    <button class="filter-btn">Dinner</button>
+                                </div>
+                                <div class="recipes-grid">
+                                    <!-- Recipe cards for selection -->
+                                    <div class="recipe-select-card" data-id="1">
+                                        <img src="https://images.unsplash.com/photo-1494390248081-4e521a5940db?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1406&q=80" alt="Recipe">
+                                        <div class="recipe-select-details">
+                                            <h4>Avocado Toast</h4>
+                                            <p>380 cal • 12g protein</p>
+                                        </div>
+                                    </div>
+                                    <div class="recipe-select-card" data-id="2">
+                                        <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Recipe">
+                                        <div class="recipe-select-details">
+                                            <h4>Vegetable Salad</h4>
+                                            <p>240 cal • 8g protein</p>
+                                        </div>
+                                    </div>
+                                    <div class="recipe-select-card" data-id="3">
+                                        <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Recipe">
+                                        <div class="recipe-select-details">
+                                            <h4>Chicken Salad</h4>
+                                            <p>420 cal • 35g protein</p>
+                                        </div>
+                                    </div>
+                                    <div class="recipe-select-card" data-id="4">
+                                        <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1760&q=80" alt="Recipe">
+                                        <div class="recipe-select-details">
+                                            <h4>Colorful Salad</h4>
+                                            <p>280 cal • 10g protein</p>
+                                        </div>
+                                    </div>
+                                    <div class="recipe-select-card" data-id="5">
+                                        <img src="https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=765&q=80" alt="Recipe">
+                                        <div class="recipe-select-details">
+                                            <h4>Salmon & Vegetables</h4>
+                                            <p>520 cal • 40g protein</p>
+                                        </div>
+                                    </div>
+                                    <div class="recipe-select-card" data-id="6">
+                                        <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Recipe">
+                                        <div class="recipe-select-details">
+                                            <h4>Power Bowl</h4>
+                                            <p>450 cal • 25g protein</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-outline modal-cancel">Cancel</button>
+                                <button class="btn btn-primary modal-add">Add to Plan</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recipes Page -->
+                <section class="page" id="recipes-page">
+                    <div class="page-header">
+                        <h2>Recipes</h2>
+                        <div class="page-actions">
+                            <button class="btn btn-primary" onclick="showAddRecipeModal()"><i class="fas fa-plus"></i> Add Recipe</button>
+                        </div>
+                    </div>
+                    <div class="search-filter-container">
+                        <div class="search-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" placeholder="Search recipes..." class="search-input">
+                        </div>
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" data-category="all">All</button>
+                            <button class="filter-tab" data-category="favorites">Favorites</button>
+                            <button class="filter-tab" data-category="breakfast">Breakfast</button>
+                            <button class="filter-tab" data-category="lunch">Lunch</button>
+                            <button class="filter-tab" data-category="dinner">Dinner</button>
+                            <button class="filter-tab" data-category="snacks">Snacks</button>
+                        </div>
+                    </div>
+                    <div class="recipes-container">
+                        <div class="recipe-card-grid">
+                            <div class="recipe-full-card">
+                                <div class="recipe-image">
+                                    <img src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=735&q=80" alt="Recipe">
+                                    <button class="favorite-btn"><i class="far fa-heart"></i></button>
+                                </div>
+                                <div class="recipe-content">
+                                    <h3>Mediterranean Bowl</h3>
+                                    <div class="recipe-meta">
+                                        <span><i class="fas fa-clock"></i> 30 min</span>
+                                        <span><i class="fas fa-fire"></i> 450 cal</span>
+                                        <span><i class="fas fa-utensils"></i> 4 servings</span>
+                                    </div>
+                                    <div class="recipe-tags">
+                                        <span class="tag">High Protein</span>
+                                        <span class="tag">Mediterranean</span>
+                                        <span class="tag">Vegetarian</span>
+                                    </div>
+                                    <p class="recipe-description">A delicious and healthy Mediterranean-inspired bowl with quinoa, chickpeas, fresh vegetables, and feta cheese.</p>
+                                    <div class="recipe-actions">
+                                        <button class="btn btn-outline">View Recipe</button>
+                                        <button class="btn btn-primary">Add to Plan</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="recipe-full-card">
+                                <div class="recipe-image">
+                                    <img src="https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=765&q=80" alt="Recipe">
+                                    <button class="favorite-btn active"><i class="fas fa-heart"></i></button>
+                                </div>
+                                <div class="recipe-content">
+                                    <h3>Baked Salmon with Vegetables</h3>
+                                    <div class="recipe-meta">
+                                        <span><i class="fas fa-clock"></i> 25 min</span>
+                                        <span><i class="fas fa-fire"></i> 520 cal</span>
+                                        <span><i class="fas fa-utensils"></i> 2 servings</span>
+                                    </div>
+                                    <div class="recipe-tags">
+                                        <span class="tag">High Protein</span>
+                                        <span class="tag">Keto</span>
+                                        <span class="tag">Seafood</span>
+                                    </div>
+                                    <p class="recipe-description">Perfectly baked salmon fillets with roasted seasonal vegetables for a healthy and satisfying dinner.</p>
+                                    <div class="recipe-actions">
+                                        <button class="btn btn-outline">View Recipe</button>
+                                        <button class="btn btn-primary">Add to Plan</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="recipe-full-card">
+                                <div class="recipe-image">
+                                    <img src="https://images.unsplash.com/photo-1494390248081-4e521a5940db?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1406&q=80" alt="Recipe">
+                                    <button class="favorite-btn"><i class="far fa-heart"></i></button>
+                                </div>
+                                <div class="recipe-content">
+                                    <h3>Avocado Toast with Poached Egg</h3>
+                                    <div class="recipe-meta">
+                                        <span><i class="fas fa-clock"></i> 15 min</span>
+                                        <span><i class="fas fa-fire"></i> 380 cal</span>
+                                        <span><i class="fas fa-utensils"></i> 1 serving</span>
+                                    </div>
+                                    <div class="recipe-tags">
+                                        <span class="tag">Breakfast</span>
+                                        <span class="tag">Vegetarian</span>
+                                        <span class="tag">Quick</span>
+                                    </div>
+                                    <p class="recipe-description">Simple but nutritious breakfast with whole grain toast, mashed avocado, and perfectly poached eggs.</p>
+                                    <div class="recipe-actions">
+                                        <button class="btn btn-outline">View Recipe</button>
+                                        <button class="btn btn-primary">Add to Plan</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="recipe-full-card">
+                                <div class="recipe-image">
+                                    <img src="https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=764&q=80" alt="Recipe">
+                                    <button class="favorite-btn"><i class="far fa-heart"></i></button>
+                                </div>
+                                <div class="recipe-content">
+                                    <h3>Protein Smoothie Bowl</h3>
+                                    <div class="recipe-meta">
+                                        <span><i class="fas fa-clock"></i> 10 min</span>
+                                        <span><i class="fas fa-fire"></i> 340 cal</span>
+                                        <span><i class="fas fa-utensils"></i> 1 serving</span>
+                                    </div>
+                                    <div class="recipe-tags">
+                                        <span class="tag">Breakfast</span>
+                                        <span class="tag">High Protein</span>
+                                        <span class="tag">Vegan</span>
+                                    </div>
+                                    <p class="recipe-description">Creamy and delicious smoothie bowl topped with fruits, nuts, and seeds for a nutritious start to your day.</p>
+                                    <div class="recipe-actions">
+                                        <button class="btn btn-outline">View Recipe</button>
+                                        <button class="btn btn-primary">Add to Plan</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="recipe-full-card">
+                                <div class="recipe-image">
+                                    <img src="https://images.unsplash.com/photo-1482049016688-2d3e1b311543?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=710&q=80" alt="Recipe">
+                                    <button class="favorite-btn"><i class="far fa-heart"></i></button>
+                                </div>
+                                <div class="recipe-content">
+                                    <h3>Chicken & Vegetable Stir Fry</h3>
+                                    <div class="recipe-meta">
+                                        <span><i class="fas fa-clock"></i> 20 min</span>
+                                        <span><i class="fas fa-fire"></i> 420 cal</span>
+                                        <span><i class="fas fa-utensils"></i> 3 servings</span>
+                                    </div>
+                                    <div class="recipe-tags">
+                                        <span class="tag">High Protein</span>
+                                        <span class="tag">Quick</span>
+                                        <span class="tag">Dinner</span>
+                                    </div>
+                                    <p class="recipe-description">Quick and flavorful stir fry with tender chicken and crisp vegetables in a delicious sauce.</p>
+                                    <div class="recipe-actions">
+                                        <button class="btn btn-outline">View Recipe</button>
+                                        <button class="btn btn-primary">Add to Plan</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="recipe-full-card">
+                                <div class="recipe-image">
+                                    <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Recipe">
+                                    <button class="favorite-btn"><i class="far fa-heart"></i></button>
+                                </div>
+                                <div class="recipe-content">
+                                    <h3>Power Bowl</h3>
+                                    <div class="recipe-meta">
+                                        <span><i class="fas fa-clock"></i> 25 min</span>
+                                        <span><i class="fas fa-fire"></i> 450 cal</span>
+                                        <span><i class="fas fa-utensils"></i> 2 servings</span>
+                                    </div>
+                                    <div class="recipe-tags">
+                                        <span class="tag">High Protein</span>
+                                        <span class="tag">Balanced</span>
+                                        <span class="tag">Lunch</span>
+                                    </div>
+                                    <p class="recipe-description">Nutrient-dense power bowl with mixed grains, roasted vegetables, and your choice of protein.</p>
+                                    <div class="recipe-actions">
+                                        <button class="btn btn-outline">View Recipe</button>
+                                        <button class="btn btn-primary">Add to Plan</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Nutrition Page -->
+                <section class="page" id="nutrition-page">
+                    <div class="page-header">
+                        <h2>Nutrition Tracking</h2>
+                    </div>
+                    <div class="nutrition-date-selector">
+                        <button class="btn btn-icon date-nav-btn prev"><i class="fas fa-chevron-left"></i></button>
+                        <h3 id="currentDate">Today, April 17, 2023</h3>
+                        <button class="btn btn-icon date-nav-btn next"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="nutrition-dashboard">
+                        <div class="nutrition-summary-card">
+                            <div class="nutrition-summary-header">
+                                <h3>Daily Summary</h3>
+                                <div class="nutrition-target-selector">
+                                    <span class="target-label">Target:</span>
+                                    <select id="calorieTargetSelector">
+                                        <option value="1600">1600 cal</option>
+                                        <option value="1800">1800 cal</option>
+                                        <option value="2000" selected>2000 cal</option>
+                                        <option value="2200">2200 cal</option>
+                                        <option value="2500">2500 cal</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="nutrition-progress-container">
+                                <div class="calorie-big-circle">
+                                    <svg viewBox="0 0 36 36" class="circular-chart">
+                                        <path class="circle-bg" d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                        <path class="circle" stroke-dasharray="65, 100" d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                    </svg>
+                                    <div class="calories-display">
+                                        <div class="calories-consumed">1320</div>
+                                        <div class="calories-goal">/ 2000 cal</div>
+                                    </div>
+                                </div>
+                                <div class="macro-bars">
+                                    <div class="macro-progress-item">
+                                        <div class="macro-header">
+                                            <div class="macro-title">Protein</div>
+                                            <div class="macro-value">85g / 120g</div>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill protein" style="width: 70%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="macro-progress-item">
+                                        <div class="macro-header">
+                                            <div class="macro-title">Carbs</div>
+                                            <div class="macro-value">120g / 200g</div>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill carbs" style="width: 60%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="macro-progress-item">
+                                        <div class="macro-header">
+                                            <div class="macro-title">Fat</div>
+                                            <div class="macro-value">45g / 65g</div>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill fat" style="width: 68%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="macro-progress-item">
+                                        <div class="macro-header">
+                                            <div class="macro-title">Fiber</div>
+                                            <div class="macro-value">18g / 30g</div>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill fiber" style="width: 60%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="nutrition-meals-log">
+                            <div class="meals-log-header">
+                                <h3>Meals Log</h3>
+                                <button class="btn btn-primary btn-add-meal"><i class="fas fa-plus"></i> Add Food</button>
+                            </div>
+                            <div class="meal-log-items">
+                                <div class="meal-category">
+                                    <div class="meal-category-header">
+                                        <h4><i class="fas fa-sun"></i> Breakfast</h4>
+                                        <span class="meal-category-total">350 cal</span>
+                                    </div>
+                                    <div class="food-items">
+                                        <div class="food-log-item">
+                                            <div class="food-info">
+                                                <div class="food-name">Greek Yogurt Parfait</div>
+                                                <div class="food-details">1 serving • 7:30 AM</div>
+                                            </div>
+                                            <div class="food-nutrition">
+                                                <div class="food-calories">350 cal</div>
+                                                <div class="food-macros">15g P • 45g C • 12g F</div>
+                                            </div>
+                                            <div class="food-actions">
+                                                <button class="food-action-btn edit"><i class="fas fa-edit"></i></button>
+                                                <button class="food-action-btn delete"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="meal-category">
+                                    <div class="meal-category-header">
+                                        <h4><i class="fas fa-cloud-sun"></i> Lunch</h4>
+                                        <span class="meal-category-total">420 cal</span>
+                                    </div>
+                                    <div class="food-items">
+                                        <div class="food-log-item">
+                                            <div class="food-info">
+                                                <div class="food-name">Quinoa Salad Bowl</div>
+                                                <div class="food-details">1 bowl • 12:15 PM</div>
+                                            </div>
+                                            <div class="food-nutrition">
+                                                <div class="food-calories">420 cal</div>
+                                                <div class="food-macros">18g P • 65g C • 14g F</div>
+                                            </div>
+                                            <div class="food-actions">
+                                                <button class="food-action-btn edit"><i class="fas fa-edit"></i></button>
+                                                <button class="food-action-btn delete"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="meal-category">
+                                    <div class="meal-category-header">
+                                        <h4><i class="fas fa-moon"></i> Dinner</h4>
+                                        <span class="meal-category-total">480 cal</span>
+                                    </div>
+                                    <div class="food-items">
+                                        <div class="food-log-item">
+                                            <div class="food-info">
+                                                <div class="food-name">Baked Salmon with Vegetables</div>
+                                                <div class="food-details">1 serving • 7:00 PM</div>
+                                            </div>
+                                            <div class="food-nutrition">
+                                                <div class="food-calories">480 cal</div>
+                                                <div class="food-macros">32g P • 35g C • 22g F</div>
+                                            </div>
+                                            <div class="food-actions">
+                                                <button class="food-action-btn edit"><i class="fas fa-edit"></i></button>
+                                                <button class="food-action-btn delete"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="meal-category">
+                                    <div class="meal-category-header">
+                                        <h4><i class="fas fa-cookie"></i> Snacks</h4>
+                                        <span class="meal-category-total">180 cal</span>
+                                    </div>
+                                    <div class="food-items">
+                                        <div class="food-log-item">
+                                            <div class="food-info">
+                                                <div class="food-name">Apple with Almond Butter</div>
+                                                <div class="food-details">1 serving • 3:30 PM</div>
+                                            </div>
+                                            <div class="food-nutrition">
+                                                <div class="food-calories">180 cal</div>
+                                                <div class="food-macros">5g P • 25g C • 10g F</div>
+                                            </div>
+                                            <div class="food-actions">
+                                                <button class="food-action-btn edit"><i class="fas fa-edit"></i></button>
+                                                <button class="food-action-btn delete"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Grocery List Page -->
+                <section class="page" id="grocery-page">
+                    <div class="page-header">
+                        <h2>Grocery List</h2>
+                        <div class="page-actions">
+                            <button class="btn btn-outline"><i class="fas fa-file-export"></i> Export</button>
+                            <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Item</button>
+                        </div>
+                    </div>
+                    <div class="grocery-container">
+                        <div class="grocery-sidebar">
+                            <div class="grocery-filters">
+                                <h3>Filter By</h3>
+                                <div class="filter-group">
+                                    <label class="filter-label">
+                                        <input type="checkbox" checked> All Items
+                                    </label>
+                                    <label class="filter-label">
+                                        <input type="checkbox"> Unchecked Only
+                                    </label>
+                                </div>
+                                <div class="filter-group">
+                                    <h4>Categories</h4>
+                                    <label class="filter-label">
+                                        <input type="checkbox" checked> Produce
+                                    </label>
+                                    <label class="filter-label">
+                                        <input type="checkbox" checked> Dairy & Eggs
+                                    </label>
+                                    <label class="filter-label">
+                                        <input type="checkbox" checked> Meat & Seafood
+                                    </label>
+                                    <label class="filter-label">
+                                        <input type="checkbox" checked> Pantry
+                                    </label>
+                                    <label class="filter-label">
+                                        <input type="checkbox" checked> Frozen
+                                    </label>
+                                    <label class="filter-label">
+                                        <input type="checkbox" checked> Other
+                                    </label>
+                                </div>
+                                <div class="filter-group">
+                                    <h4>Source</h4>
+                                    <label class="filter-label">
+                                        <input type="checkbox" checked> Meal Plan
+                                    </label>
+                                    <label class="filter-label">
+                                        <input type="checkbox" checked> Custom Items
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grocery-main">
+                            <div class="grocery-list-container">
+                                <div class="grocery-search">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" placeholder="Search grocery items..." class="search-input">
+                                </div>
+                                <div class="grocery-actions">
+                                    <button class="btn btn-sm btn-outline"><i class="fas fa-check-double"></i> Check All</button>
+                                    <button class="btn btn-sm btn-outline"><i class="fas fa-times"></i> Uncheck All</button>
+                                    <button class="btn btn-sm btn-outline"><i class="fas fa-trash"></i> Clear Checked</button>
+                                </div>
+                                <div class="grocery-categories">
+                                    <div class="grocery-category">
+                                        <div class="category-header">
+                                            <h3><i class="fas fa-carrot"></i> Produce</h3>
+                                            <span class="item-count">7 items</span>
+                                        </div>
+                                        <ul class="grocery-items">
+                                            <li class="grocery-item">
+                                                <label class="grocery-checkbox">
+                                                    <input type="checkbox">
+                                                    <span class="checkbox-custom"></span>
+                                                </label>
+                                                <div class="item-details">
+                                                    <span class="item-name">Avocados</span>
+                                                    <span class="item-quantity">3</span>
+                                                </div>
+                                                <div class="item-source" title="From meal plan">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <button class="item-action-btn"><i class="fas fa-edit"></i></button>
+                                                    <button class="item-action-btn"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </li>
+                                            <li class="grocery-item">
+                                                <label class="grocery-checkbox">
+                                                    <input type="checkbox">
+                                                    <span class="checkbox-custom"></span>
+                                                </label>
+                                                <div class="item-details">
+                                                    <span class="item-name">Bell Peppers</span>
+                                                    <span class="item-quantity">4</span>
+                                                </div>
+                                                <div class="item-source" title="From meal plan">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <button class="item-action-btn"><i class="fas fa-edit"></i></button>
+                                                    <button class="item-action-btn"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </li>
+                                            <li class="grocery-item">
+                                                <label class="grocery-checkbox">
+                                                    <input type="checkbox">
+                                                    <span class="checkbox-custom"></span>
+                                                </label>
+                                                <div class="item-details">
+                                                    <span class="item-name">Broccoli</span>
+                                                    <span class="item-quantity">1 bunch</span>
+                                                </div>
+                                                <div class="item-source" title="From meal plan">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <button class="item-action-btn"><i class="fas fa-edit"></i></button>
+                                                    <button class="item-action-btn"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </li>
+                                            <li class="grocery-item">
+                                                <label class="grocery-checkbox">
+                                                    <input type="checkbox" checked>
+                                                    <span class="checkbox-custom"></span>
+                                                </label>
+                                                <div class="item-details">
+                                                    <span class="item-name">Carrots</span>
+                                                    <span class="item-quantity">1 bag</span>
+                                                </div>
+                                                <div class="item-source" title="From meal plan">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <button class="item-action-btn"><i class="fas fa-edit"></i></button>
+                                                    <button class="item-action-btn"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </li>
+                                            <li class="grocery-item">
+                                                <label class="grocery-checkbox">
+                                                    <input type="checkbox">
+                                                    <span class="checkbox-custom"></span>
+                                                </label>
+                                                <div class="item-details">
+                                                    <span class="item-name">Cherry Tomatoes</span>
+                                                    <span class="item-quantity">2 pints</span>
+                                                </div>
+                                                <div class="item-source" title="Custom item">
+                                                    <i class="fas fa-plus"></i>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <button class="item-action-btn"><i class="fas fa-edit"></i></button>
+                                                    <button class="item-action-btn"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </li>
+                                            <li class="grocery-item">
+                                                <label class="grocery-checkbox">
+                                                    <input type="checkbox" checked>
+                                                    <span class="checkbox-custom"></span>
+                                                </label>
+                                                <div class="item-details">
+                                                    <span class="item-name">Cucumber</span>
+                                                    <span class="item-quantity">2</span>
+                                                </div>
+                                                <div class="item-source" title="From meal plan">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <button class="item-action-btn"><i class="fas fa-edit"></i></button>
+                                                    <button class="item-action-btn"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </li>
+                                            <li class="grocery-item">
+                                                <label class="grocery-checkbox">
+                                                    <input type="checkbox">
+                                                    <span class="checkbox-custom"></span>
+                                                </label>
+                                                <div class="item-details">
+                                                    <span class="item-name">Spinach</span>
+                                                    <span class="item-quantity">1 bag</span>
+                                                </div>
+                                                <div class="item-source" title="From meal plan">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <button class="item-action-btn"><i class="fas fa-edit"></i></button>
+                                                    <button class="item-action-btn"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="grocery-category">
+                                        <div class="category-header">
+                                            <h3><i class="fas fa-egg"></i> Dairy & Eggs</h3>
+                                            <span class="item-count">3 items</span>
+                                        </div>
+                                        <ul class="grocery-items">
+                                            <li class="grocery-item">
+                                                <label class="grocery-checkbox">
+                                                    <input type="checkbox">
+                                                    <span class="checkbox-custom"></span>
+                                                </label>
+                                                <div class="item-details">
+                                                    <span class="item-name">Eggs</span>
+                                                    <span class="item-quantity">1 dozen</span>
+                                                </div>
+                                                <div class="item-source" title="From meal plan">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <button class="item-action-btn"><i class="fas fa-edit"></i></button>
+                                                    <button class="item-action-btn"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </li>
+                                            <li class="grocery-item">
+                                                <label class="grocery-checkbox">
+                                                    <input type="checkbox" checked>
+                                                    <span class="checkbox-custom"></span>
+                                                </label>
+                                                <div class="item-details">
+                                                    <span class="item-name">Greek Yogurt</span>
+                                                    <span class="item-quantity">32 oz</span>
+                                                </div>
+                                                <div class="item-source" title="From meal plan">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <button class="item-action-btn"><i class="fas fa-edit"></i></button>
+                                                    <button class="item-action-btn"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </li>
+                                            <li class="grocery-item">
+                                                <label class="grocery-checkbox">
+                                                    <input type="checkbox">
+                                                    <span class="checkbox-custom"></span>
+                                                </label>
+                                                <div class="item-details">
+                                                    <span class="item-name">Almond Milk</span>
+                                                    <span class="item-quantity">1/2 gallon</span>
+                                                </div>
+                                                <div class="item-source" title="Custom item">
+                                                    <i class="fas fa-plus"></i>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <button class="item-action-btn"><i class="fas fa-edit"></i></button>
+                                                    <button class="item-action-btn"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="grocery-category">
+                                        <div class="category-header">
+                                            <h3><i class="fas fa-drumstick-bite"></i> Meat & Seafood</h3>
+                                            <span class="item-count">2 items</span>
+                                        </div>
+                                        <ul class="grocery-items">
+                                            <li class="grocery-item">
+                                                <label class="grocery-checkbox">
+                                                    <input type="checkbox">
+                                                    <span class="checkbox-custom"></span>
+                                                </label>
+                                                <div class="item-details">
+                                                    <span class="item-name">Chicken Breast</span>
+                                                    <span class="item-quantity">2 lbs</span>
+                                                </div>
+                                                <div class="item-source" title="From meal plan">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <button class="item-action-btn"><i class="fas fa-edit"></i></button>
+                                                    <button class="item-action-btn"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </li>
+                                            <li class="grocery-item">
+                                                <label class="grocery-checkbox">
+                                                    <input type="checkbox">
+                                                    <span class="checkbox-custom"></span>
+                                                </label>
+                                                <div class="item-details">
+                                                    <span class="item-name">Salmon Fillets</span>
+                                                    <span class="item-quantity">1 lb</span>
+                                                </div>
+                                                <div class="item-source" title="From meal plan">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <button class="item-action-btn"><i class="fas fa-edit"></i></button>
+                                                    <button class="item-action-btn"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="firebase.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
