@@ -293,8 +293,9 @@ const db = {
     // User Preferences
     async saveUserPreferences(userId, preferences) {
         try {
-            await firebase.firestore().collection('userPreferences').doc(userId).set({
+            await firestoreDb.collection('userPreferences').doc(userId).set({
                 ...preferences,
+                userId,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             return true;
@@ -306,7 +307,7 @@ const db = {
 
     async getUserPreferences(userId) {
         try {
-            const doc = await firebase.firestore().collection('userPreferences').doc(userId).get();
+            const doc = await firestoreDb.collection('userPreferences').doc(userId).get();
             return doc.exists ? doc.data() : null;
         } catch (error) {
             console.error('Error getting preferences:', error);
@@ -317,7 +318,7 @@ const db = {
     // Meal Plans
     async saveMealPlan(userId, week, mealPlan) {
         try {
-            await firebase.firestore().collection('mealPlans').doc(`${userId}_${week}`).set({
+            await firestoreDb.collection('mealPlans').doc(`${userId}_${week}`).set({
                 ...mealPlan,
                 userId,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -331,7 +332,7 @@ const db = {
 
     async getMealPlan(userId, week) {
         try {
-            const doc = await firebase.firestore().collection('mealPlans').doc(`${userId}_${week}`).get();
+            const doc = await firestoreDb.collection('mealPlans').doc(`${userId}_${week}`).get();
             return doc.exists ? doc.data() : null;
         } catch (error) {
             console.error('Error getting meal plan:', error);
@@ -342,7 +343,7 @@ const db = {
     // Recipes
     async saveRecipe(userId, recipe) {
         try {
-            const docRef = await firebase.firestore().collection('recipes').add({
+            const docRef = await firestoreDb.collection('recipes').add({
                 ...recipe,
                 userId,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -357,7 +358,7 @@ const db = {
 
     async getUserRecipes(userId) {
         try {
-            const snapshot = await firebase.firestore()
+            const snapshot = await firestoreDb
                 .collection('recipes')
                 .where('userId', '==', userId)
                 .get();
@@ -375,7 +376,7 @@ const db = {
     // Grocery Lists
     async saveGroceryList(userId, list) {
         try {
-            await firebase.firestore().collection('groceryLists').doc(userId).set({
+            await firestoreDb.collection('groceryLists').doc(userId).set({
                 ...list,
                 userId,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -389,7 +390,7 @@ const db = {
 
     async getGroceryList(userId) {
         try {
-            const doc = await firebase.firestore().collection('groceryLists').doc(userId).get();
+            const doc = await firestoreDb.collection('groceryLists').doc(userId).get();
             return doc.exists ? doc.data() : null;
         } catch (error) {
             console.error('Error getting grocery list:', error);
@@ -400,7 +401,7 @@ const db = {
     // Nutrition Logs
     async saveNutritionLog(userId, date, log) {
         try {
-            await firebase.firestore().collection('nutritionLogs').doc(`${userId}_${date}`).set({
+            await firestoreDb.collection('nutritionLogs').doc(`${userId}_${date}`).set({
                 ...log,
                 userId,
                 date,
@@ -415,7 +416,7 @@ const db = {
 
     async getNutritionLog(userId, date) {
         try {
-            const doc = await firebase.firestore().collection('nutritionLogs').doc(`${userId}_${date}`).get();
+            const doc = await firestoreDb.collection('nutritionLogs').doc(`${userId}_${date}`).get();
             return doc.exists ? doc.data() : null;
         } catch (error) {
             console.error('Error getting nutrition log:', error);
